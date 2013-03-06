@@ -1,18 +1,16 @@
-#!/usr/bin/python
-
 # algorithm/SpelloutAlgorithm.py
 #
 # (C) Copyright 2013  Cristian Dinu <goc9000@gmail.com>
-# 
+#
 # This file is part of spellout.
 #
 # Licensed under the GPL-3
 
 import copy
 
+from algorithm.Setup import Setup
 from structures.tree.Tree import Tree
 from structures.tree.TreeNode import TreeNode
-from structures.tree.FeatureNode import FeatureNode
 from structures.tree.PhrasalNode import PhrasalNode
 from structures.tree.TraceNode import TraceNode
 from structures.LexiconEntry import LexiconEntry
@@ -29,9 +27,7 @@ HIGHLIGHT_POINT = '*'
 
 
 class SpelloutAlgorithm():
-    _initial_node = None
-    _external_merges = None
-    _lexicon = None
+    _setup = None
 
     _state = None
     _external_merge_round = 0
@@ -92,19 +88,9 @@ class SpelloutAlgorithm():
     def success(self):
         return self._state == self._state_success
 
-    def start(self, initial_node, external_merges, lexicon):
-        if initial_node is None:
-            raise RuntimeError("You must provide an initial node for the algorithm to start")
-        if not isinstance(initial_node, FeatureNode):
-            raise RuntimeError("Initial node must be a feature node")
-        if len(external_merges) == 0:
-            raise RuntimeError("You must specify at least one node to externally merge")
-        if not all([isinstance(node, FeatureNode) for node in external_merges]):
-            raise RuntimeError("Only feature nodes may be externally merged")
-
-        self._initial_node = initial_node.clone() if initial_node is not None else None
-        self._external_merges = [item.clone() for item in external_merges]
-        self._lexicon = [item.clone() for item in lexicon]
+    def start(self, setup):
+        setup.check()
+        self._setup = setup.clone()
 
         self._switch_state(self._state_just_started, {})
 
@@ -141,9 +127,7 @@ class SpelloutAlgorithm():
         MAT = self._materialize_to_json
 
         obj = {
-            'initial_node': MAT(self._initial_node),
-            'external_merges': MAT(self._external_merges),
-            'lexicon': MAT(self._lexicon),
+            'setup': self._setup.to_json_obj(),
             'state': REF(self._state),
             'external_merge_round': self._external_merge_round,
             'tree': MAT(self._tree),
@@ -214,7 +198,7 @@ class SpelloutAlgorithm():
         raise RuntimeError("This should never be executed")
 
     def _state_just_started(self, **_):
-        self._tree = Tree(self._initial_node.clone())
+        self._tree = Tree(self._setup.initial_node)
         self._update_tree_clone()
 
         self._external_merge_round = 0
@@ -223,7 +207,7 @@ class SpelloutAlgorithm():
         self._lexicalizations = {}
         self._pending_moves = {}
         self._log_note("Algorithm started.")
-        self._log_note("Initial tree consists of node {0}".format(self._initial_node.name()))
+        self._log_note("Initial tree consists of node {0}".format(self._setup.initial_node.name()))
         self._undo_info = []
         self._last_choice = None
 
@@ -245,12 +229,12 @@ class SpelloutAlgorithm():
         self._log_note(u"Moved node {0}".format(node.name()))
 
     def _state_announce_external_merge(self, **_):
-        node = self._external_merges[self._external_merge_round - 1]
+        node = self._setup.external_merges[self._external_merge_round - 1]
         self._highlight_nodes({self._tree.root: HIGHLIGHT_DESTINATION})
         self._log_note(u"About to perform external merge of node {0}".format(node.name()))
 
     def _state_merged_node(self, **_):
-        node = self._external_merges[self._external_merge_round - 1]
+        node = self._setup.external_merges[self._external_merge_round - 1]
         merged_node = self._do_external_merge(node)
         self._highlight_nodes({merged_node: HIGHLIGHT_POINT})
         self._log_note(u"Merged node {0}".format(node.name()))
@@ -306,7 +290,7 @@ class SpelloutAlgorithm():
         self._log_note(u"Spell-out: {0} (/{1}/)".format(
             u'+'.join(item.name for item in spellout),
             u' '.join(item.phonological_content for item in spellout)
-            ))
+        ))
 
     def _state_failure(self, **kwargs):
         self._log_error(u"FAILURE: " + kwargs['error_text'])
@@ -318,7 +302,7 @@ class SpelloutAlgorithm():
             return "external merge round no.{0}".format(self._external_merge_round)
 
     def _is_final_round(self):
-        return self._external_merge_round == len(self._external_merges) + 1
+        return self._external_merge_round == len(self._setup.external_merges) + 1
 
     def _any_to_move(self):
         return len(self._pending_moves) > 0
@@ -368,7 +352,7 @@ class SpelloutAlgorithm():
         matches = []
 
         node_sig = node.signature()
-        for item in self._lexicon:
+        for item in self._setup.lexicon:
             item_tree_size = item.tree.root.subtree_size()
 
             for start_node in item.tree.bfs():
@@ -564,11 +548,7 @@ class SpelloutAlgorithm():
     def _load_from_json_obj(self, data):
         REF = self._references_from_json
 
-        self._initial_node = TreeNode.from_json_obj(data['initial_node'])
-        if data['external_merges'] is not None:
-            self._external_merges = [TreeNode.from_json_obj(obj) for obj in data['external_merges']]
-        if data['lexicon'] is not None:
-            self._lexicon = [LexiconEntry.from_json_obj(obj) for obj in data['lexicon']]
+        self._setup = Setup.from_json_obj(data['setup'])
 
         self._tree = Tree.from_json_obj(data['tree'])
         self._log = copy.deepcopy(data['log'])
@@ -604,7 +584,7 @@ class SpelloutAlgorithm():
 
             raise RuntimeError("Tried to refer to node not in tree")
         elif isinstance(value, LexiconEntry):
-            return '@lexicon:{0}'.format(self._lexicon.index(value))
+            return '@lexicon:{0}'.format(self._setup.lexicon.index(value))
         elif callable(value):
             if value.__name__.startswith('_state_'):
                 return '@state:' + self._get_state_name(value)
@@ -638,10 +618,10 @@ class SpelloutAlgorithm():
                 return all_nodes[index - 1]
             elif data.startswith('@lexicon:'):
                 index = int(data[len('@lexicon:'):])
-                if index < 0 or index >= len(self._lexicon):
+                if index < 0 or index >= len(self._setup.lexicon):
                     raise RuntimeError("Invalid lexicon item index: {0}".format(index))
 
-                return self._lexicon[index]
+                return self._setup.lexicon[index]
         elif isinstance(data, dict):
             return dict((self._references_from_json(key), self._references_from_json(val))
                         for key, val in data.items())

@@ -8,7 +8,6 @@
 
 from structures.tree.TreeNode import TreeNode
 from structures.tree.PhrasalNode import PhrasalNode
-from structures.tree.FeatureNode import FeatureNode
 from structures.tree.TraceNode import TraceNode
 from structures.tree.PlaceholderNode import PlaceholderNode
 

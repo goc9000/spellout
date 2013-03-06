@@ -1,7 +1,7 @@
 # gui/MainWindow.py
 #
 # (C) Copyright 2013  Cristian Dinu <goc9000@gmail.com>
-# 
+#
 # This file is part of spellout.
 #
 # Licensed under the GPL-3
@@ -10,6 +10,7 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import QObject, SIGNAL
 from PyQt4.QtGui import QMainWindow, QFileDialog, QStyle, QListWidgetItem
 
+from algorithm.Setup import Setup
 from algorithm.SpelloutAlgorithm import MSG_NOTE, MSG_ERROR, MSG_WARNING
 from graphics.AlgorithmTreeRenderer import AlgorithmTreeRenderer
 
@@ -28,7 +29,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
         self._app = app
         self._init_ui()
         self.center_on_screen()
-    
+
     def _init_ui(self):
         self.setupUi(self)
         self._setup_icons_using_property()
@@ -38,22 +39,18 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
         self._update_all_from_session()
 
     def setup(self, setup):
-        if 'initial_node' in setup:
-            self.initial_node_editor.set_node(setup['initial_node'])
-        if 'external_merges' in setup:
-            self.external_merges_editor.set_nodes(setup['external_merges'])
-        if 'lexicon' in setup:
-            self.lexicon_table.set_lexicon(setup['lexicon'])
-    
+        self.initial_node_editor.set_node(setup.initial_node)
+        self.external_merges_editor.set_nodes(setup.external_merges)
+        self.lexicon_table.set_lexicon(setup.lexicon)
+
     def get_setup(self):
-        setup = {
-            'initial_node': self.initial_node_editor.get_node(),
-            'external_merges': self.external_merges_editor.get_nodes(),
-            'lexicon': self.lexicon_table.get_lexicon()
-        }
+        setup = Setup()
+        setup.initial_node = self.initial_node_editor.get_node()
+        setup.external_merges = self.external_merges_editor.get_nodes()
+        setup.lexicon = self.lexicon_table.get_lexicon()
 
         return setup
-    
+
     def _commit_setup(self):
         try:
             self._app.session.setup = self.get_setup()

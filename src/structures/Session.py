@@ -1,16 +1,15 @@
 # structures/Session.py
 #
 # (C) Copyright 2013  Cristian Dinu <goc9000@gmail.com>
-# 
+#
 # This file is part of spellout.
 #
 # Licensed under the GPL-3
 
 import os
 
+from algorithm.Setup import Setup
 from algorithm.SpelloutAlgorithm import SpelloutAlgorithm
-from structures.tree.TreeNode import TreeNode
-from structures.LexiconEntry import LexiconEntry
 
 
 class Session:
@@ -20,11 +19,7 @@ class Session:
     algorithm = None
 
     def __init__(self):
-        self.setup = {
-            'initial_node': None,
-            'external_merges': [],
-            'lexicon': []
-        }
+        self.setup = Setup()
         self.algorithm = SpelloutAlgorithm()
 
     def name(self):
@@ -38,10 +33,7 @@ class Session:
 
     def to_json_obj(self):
         obj = {
-            'initial_node': self.setup['initial_node'].to_json_obj() if self.setup['initial_node'] is not None
-            else None,
-            'external_merges': [item.to_json_obj() for item in self.setup['external_merges']],
-            'lexicon': [item.to_json_obj() for item in self.setup['lexicon']],
+            'setup': self.setup.to_json_obj(),
             'algorithm': self.algorithm.to_json_obj()
         }
 
@@ -50,12 +42,7 @@ class Session:
     @staticmethod
     def from_json_obj(data):
         session = Session()
-
-        session.setup = {
-            'initial_node': TreeNode.from_json_obj(data['initial_node']),
-            'external_merges': [TreeNode.from_json_obj(obj) for obj in data['external_merges']],
-            'lexicon': [LexiconEntry.from_json_obj(obj) for obj in data['lexicon']]
-        }
+        session.setup = Setup.from_json_obj(data['setup'])
         session.algorithm = SpelloutAlgorithm.from_json_obj(data['algorithm'])
 
         return session

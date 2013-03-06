@@ -3,7 +3,7 @@
 # app/SpelloutApp.py
 #
 # (C) Copyright 2013  Cristian Dinu <goc9000@gmail.com>
-# 
+#
 # This file is part of spellout.
 #
 # Licensed under the GPL-3
@@ -103,6 +103,4 @@ class SpelloutApp():
         return True
 
     def restart_algorithm(self):
-        self.session.algorithm.start(self.session.setup['initial_node'],
-                                     self.session.setup['external_merges'],
-                                     self.session.setup['lexicon'])
+        self.session.algorithm.start(self.session.setup)
