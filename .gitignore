@@ -1,0 +1,5 @@
+doc/
+src/gui/templates/Ui_*.py
+src/gui/templates/resources_rc.py
+.idea/
+*.pyc

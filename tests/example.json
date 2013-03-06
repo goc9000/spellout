@@ -1,0 +1,128 @@
+{
+    "external_merges": [
+        {
+            "type": "FeatureNode", 
+            "feature": "B"
+        }, 
+        {
+            "type": "FeatureNode", 
+            "feature": "C"
+        }, 
+        {
+            "type": "FeatureNode", 
+            "feature": "D"
+        }, 
+        {
+            "type": "FeatureNode", 
+            "feature": "E"
+        }
+    ], 
+    "lexicon": [
+        {
+            "phonological_content": "za", 
+            "tree": {
+                "root": {
+                    "type": "FeatureNode", 
+                    "feature": "A", 
+                    "id": 1
+                }
+            }, 
+            "name": "x", 
+            "conceptual_content": null
+        }, 
+        {
+            "phonological_content": "ze", 
+            "tree": {
+                "root": {
+                    "type": "FeatureNode", 
+                    "feature": "B", 
+                    "id": 1
+                }
+            }, 
+            "name": "y", 
+            "conceptual_content": null
+        }, 
+        {
+            "phonological_content": "zi", 
+            "tree": {
+                "root": {
+                    "right": {
+                        "type": "FeatureNode", 
+                        "feature": "A", 
+                        "id": 3
+                    }, 
+                    "degree": 0, 
+                    "feature": "B", 
+                    "type": "PhrasalNode", 
+                    "id": 1, 
+                    "left": {
+                        "type": "FeatureNode", 
+                        "feature": "B", 
+                        "id": 2
+                    }
+                }
+            }, 
+            "name": "z", 
+            "conceptual_content": null
+        }, 
+        {
+            "phonological_content": "zo", 
+            "tree": {
+                "root": {
+                    "type": "FeatureNode", 
+                    "feature": "C", 
+                    "id": 1
+                }
+            }, 
+            "name": "v", 
+            "conceptual_content": null
+        }, 
+        {
+            "phonological_content": "zu", 
+            "tree": {
+                "root": {
+                    "right": {
+                        "right": {
+                            "type": "FeatureNode", 
+                            "feature": "D", 
+                            "id": 4
+                        }, 
+                        "type": "PhrasalNode", 
+                        "feature": "D", 
+                        "degree": 0, 
+                        "id": 3
+                    }, 
+                    "degree": 0, 
+                    "feature": "E", 
+                    "type": "PhrasalNode", 
+                    "id": 1, 
+                    "left": {
+                        "type": "FeatureNode", 
+                        "feature": "E", 
+                        "id": 2
+                    }
+                }
+            }, 
+            "name": "w", 
+            "conceptual_content": null
+        }
+    ], 
+    "algorithm": {
+        "last_choice": null, 
+        "lexicon": null, 
+        "external_merges": null, 
+        "pending_moves": {}, 
+        "initial_node": null, 
+        "undo_info": [], 
+        "log": [], 
+        "highlights": {}, 
+        "tree": null, 
+        "lexicalizations": {}, 
+        "external_merge_round": 0, 
+        "state": "@state:not_started"
+    }, 
+    "initial_node": {
+        "type": "FeatureNode", 
+        "feature": "A"
+    }
+}
