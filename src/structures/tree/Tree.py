@@ -44,34 +44,13 @@ class Tree:
         return self.root.locate_child(node)
 
     def check(self):
-        names = set()
-        phrasals = {}
-
         for node in self.root.bfs():
-            if node.name() in names:
-                raise RuntimeError("Node {0} appears multiple times".format(node.name()))
-
             if isinstance(node, PhrasalNode):
                 if len(node.children()) == 0:
                     raise RuntimeError("Phrasal node {0} must have at least one child".format(node.name()))
 
-                if not node.feature in phrasals:
-                    phrasals[node.feature] = set()
-                phrasals[node.feature].add(node.degree)
-
             if isinstance(node, PlaceholderNode):
                 raise RuntimeError("Some nodes are still not filled in")
-
-            names.add(node.name())
-
-        for feature, degrees in phrasals.items():
-            prompt = "Phrasal {0}P ".format(feature)
-
-            if 0 in degrees and 1 in degrees:
-                raise RuntimeError(prompt + " appears both unqualified and with degree 1")
-            for deg in degrees:
-                if deg > 1 and (deg - 1) not in degrees:
-                    raise RuntimeError(prompt + " appears with degree {0} but not {1}".format(deg, deg - 1))
 
     def to_json_obj(self):
         nodes_to_ids = dict(((node, i + 1) for i, node in enumerate(self.root.bfs())))
