@@ -51,8 +51,6 @@ class Tree:
             if node.name() in names:
                 raise RuntimeError("Node {0} appears multiple times".format(node.name()))
 
-            if isinstance(node, FeatureNode) and len(node.children()) > 0:
-                raise RuntimeError("Feature node {0} may not have children".format(node.name()))
             if isinstance(node, PhrasalNode):
                 if len(node.children()) == 0:
                     raise RuntimeError("Phrasal node {0} must have at least one child".format(node.name()))
