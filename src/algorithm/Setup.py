@@ -15,6 +15,7 @@ class Setup:
     initial_node = None
     external_merges = None
     lexicon = None
+    conceptual_series = None
 
     def __init__(self):
         self.external_merges = []
@@ -25,6 +26,7 @@ class Setup:
         dupe.initial_node = self.initial_node.clone() if self.initial_node is not None else None
         dupe.external_merges = [item.clone() for item in self.external_merges]
         dupe.lexicon = [item.clone() for item in self.lexicon]
+        dupe.conceptual_series = self.conceptual_series
 
         return dupe
 
@@ -48,7 +50,8 @@ class Setup:
         obj = {
             'initial_node': self.initial_node.to_json_obj() if self.initial_node is not None else None,
             'external_merges': [item.to_json_obj() for item in self.external_merges],
-            'lexicon': [item.to_json_obj() for item in self.lexicon]
+            'lexicon': [item.to_json_obj() for item in self.lexicon],
+            'conceptual_series': self.conceptual_series
         }
 
         return obj
@@ -59,5 +62,6 @@ class Setup:
         setup.initial_node = TreeNode.from_json_obj(data['initial_node'])
         setup.external_merges = [TreeNode.from_json_obj(obj) for obj in data['external_merges']]
         setup.lexicon = [LexiconEntry.from_json_obj(obj) for obj in data['lexicon']]
+        setup.conceptual_series = data['conceptual_series']
 
         return setup

@@ -1,14 +1,14 @@
 # gui/widgets/LexiconTable.py
 #
 # (C) Copyright 2013  Cristian Dinu <goc9000@gmail.com>
-# 
+#
 # This file is part of spellout.
 #
 # Licensed under the GPL-3
 
 from PyQt4.Qt import Qt, QModelIndex, SIGNAL
 from PyQt4.QtGui import QTableView, QItemDelegate, QHeaderView
-from PyQt4.QtCore import QAbstractTableModel, QVariant
+from PyQt4.QtCore import QAbstractTableModel, QVariant, pyqtSignal
 
 from gui.TreeEditor import TreeEditor
 
@@ -23,32 +23,42 @@ COLUMN_WIDTHS = [56, 56, 64]
 
 
 class LexiconTable(QTableView):
+    changed = pyqtSignal()
+
+    _disable_change_signal = False
+
     def __init__(self, parent):
         QTableView.__init__(self, parent)
 
-        model = LexiconTableModel(self) 
+        model = LexiconTableModel(self)
         self.setModel(model)
-        
+
         item_delegate = LexiconTableItemDelegate(self)
         self.setItemDelegate(item_delegate)
-        
+
         for col, width in enumerate(COLUMN_WIDTHS):
             self.setColumnWidth(col, width)
         self.horizontalHeader().setStretchLastSection(True)
-        
+
         self.verticalHeader().setVisible(False)
         self.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
-        
-        self.connect(model, SIGNAL("rowsInserted(QModelIndex,int,int)"), self.on_rows_inserted)
+
+        self.connect(model, SIGNAL("dataChanged(QModelIndex,QModelIndex)"), self._on_change)
+        self.connect(model, SIGNAL("rowsInserted(QModelIndex,int,int)"), self._on_change)
+        self.connect(model, SIGNAL("rowsDeleted(QModelIndex,int,int)"), self._on_change)
 
     def set_lexicon(self, lexicon):
+        self._disable_change_signal = True
         self.model().set_lexicon(lexicon)
-    
+        self._disable_change_signal = False
+        self._on_change()
+
     def get_lexicon(self):
         return self.model().get_lexicon()
-    
-    def on_rows_inserted(self):
-        pass
+
+    def _on_change(self):
+        if not self._disable_change_signal:
+            self.changed.emit()
 
 
 class LexiconTableItemDelegate(QItemDelegate):
@@ -58,28 +68,28 @@ class LexiconTableItemDelegate(QItemDelegate):
     def createEditor(self, parent, option, index):
         if index.column() == COL_TREE:
             editor = TreeEditor(self.parent())
-            
+
             return editor
-        
+
         editor = QItemDelegate.createEditor(self, parent, option, index)
         editor.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
-        
+
         return editor
-    
+
     def setEditorData(self, editor, index):
         if index.column() == COL_TREE:
             tree = index.model().data(index, Qt.EditRole).toPyObject()
             editor.set_tree(tree)
             return
-        
+
         return QItemDelegate.setEditorData(self, editor, index)
-    
+
     def setModelData(self, editor, model, index):
         if index.column() == COL_TREE:
             if editor.was_accepted:
                 model.setData(index, QVariant(editor.get_tree()), Qt.EditRole)
             return
-            
+
         return QItemDelegate.setModelData(self, editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
@@ -87,7 +97,7 @@ class LexiconTableItemDelegate(QItemDelegate):
             abs_table_pos = self.parent().mapToGlobal(self.parent().pos())
             editor.move(abs_table_pos.x() + option.rect.x(), abs_table_pos.y() + option.rect.y())
             return
-        
+
         return QItemDelegate.updateEditorGeometry(self, editor, option, index)
 
     def sizeHint(self, option, index):
@@ -102,14 +112,14 @@ class LexiconTableModel(QAbstractTableModel):
     _lexicon = None
     _new_entry = None
     _tree_pic_cache = None
-     
+
     def __init__(self, parent):
-        QAbstractTableModel.__init__(self, parent) 
+        QAbstractTableModel.__init__(self, parent)
         self._lexicon = []
         self._new_entry = LexiconEntry(None, None, None, None)
         self._parent = parent
         self._refresh_tree_pic_cache()
-    
+
     def set_lexicon(self, lexicon):
         self.beginRemoveRows(QModelIndex(), 0, len(self._lexicon))
         self._lexicon = []
@@ -120,25 +130,25 @@ class LexiconTableModel(QAbstractTableModel):
         self._new_entry = LexiconEntry(None, None, None, None)
         self._refresh_tree_pic_cache()
         self.endInsertRows()
-    
+
     def get_lexicon(self):
         return [entry.clone() for entry in self._lexicon]
 
     def rowCount(self, parent):
         return len(self._lexicon) + 1
- 
-    def columnCount(self, parent): 
+
+    def columnCount(self, parent):
         return len(COLUMN_NAMES)
- 
+
     def flags(self, index):
         return Qt.ItemIsEnabled | Qt.ItemIsEditable
- 
-    def data(self, index, role): 
-        if not index.isValid(): 
+
+    def data(self, index, role):
+        if not index.isValid():
             return QVariant()
-        
+
         entry = self.entry_at_row(index.row())
-        
+
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if index.column() == COL_NAME:
                 return QVariant(entry.name)
@@ -157,16 +167,16 @@ class LexiconTableModel(QAbstractTableModel):
         elif role == Qt.DecorationRole:
             if index.column() == COL_TREE:
                 return QVariant(self._tree_pic_cache[index.row()])
-        
+
         return QVariant()
-    
+
     def setData(self, index, value_variant, role):
         if not index.isValid() or role != Qt.EditRole:
             return False
-        
+
         entry = self.entry_at_row(index.row())
         value = value_variant.toPyObject()
-        
+
         if index.column() == COL_NAME:
             if value == '' and entry != self._new_entry:
                 return False
@@ -180,11 +190,11 @@ class LexiconTableModel(QAbstractTableModel):
             self._tree_pic_cache[index.row()] = TreeRenderer(value).get_tree_image()
         else:
             return False
-        
+
         self.dataChanged.emit(index, index)
-        
+
         self._commit_new_entry()
-        
+
         return True
 
     def headerData(self, col, orientation, role):
@@ -203,7 +213,7 @@ class LexiconTableModel(QAbstractTableModel):
     def _commit_new_entry(self):
         if not self._new_entry.is_complete():
             return
-        
+
         self.beginInsertRows(QModelIndex(), len(self._lexicon), len(self._lexicon))
         self._lexicon.append(self._new_entry)
         self._new_entry = LexiconEntry(None, None, None, None)

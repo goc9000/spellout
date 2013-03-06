@@ -12,7 +12,8 @@
         "setup": {
             "initial_node": null,
             "external_merges": [],
-            "lexicon": []
+            "lexicon": [],
+            "conceptual_series": null
         }
     },
     "setup": {
@@ -127,6 +128,7 @@
                 "name": "w",
                 "conceptual_content": null
             }
-        ]
+        ],
+        "conceptual_series": null
     }
 }

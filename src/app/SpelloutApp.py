@@ -63,8 +63,12 @@ class SpelloutApp():
         self.restart_algorithm()
         self.go_to_end()
 
-        while only_successful and not self.session.algorithm.success():
-            self.next_possibility(True)
+        if only_successful and not self.session.algorithm.success():
+            success = self.next_possibility(True)
+            if not success:
+                self.go_to_end()
+
+            return success
 
         return True
 

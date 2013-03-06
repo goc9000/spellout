@@ -35,6 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
         self._setup_icons_using_property()
 
         self.advanced_box.setVisible(self.advanced_button.isChecked())
+        self.lexicon_table.changed.connect(self._on_lexicon_changed)
 
         self._update_all_from_session()
 
@@ -42,12 +43,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
         self.initial_node_editor.set_node(setup.initial_node)
         self.external_merges_editor.set_nodes(setup.external_merges)
         self.lexicon_table.set_lexicon(setup.lexicon)
+        self._set_conceptual_series(setup.conceptual_series)
 
     def get_setup(self):
         setup = Setup()
         setup.initial_node = self.initial_node_editor.get_node()
         setup.external_merges = self.external_merges_editor.get_nodes()
         setup.lexicon = self.lexicon_table.get_lexicon()
+        setup.conceptual_series = self._selected_conceptual_series()
 
         return setup
 
@@ -122,6 +125,34 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
                 action = self.alternatives_menu.addAction("&{0}. {1}".format(i + 1, text))
                 QObject.connect(action, SIGNAL("activated()"), lambda: self._on_clicked_alternative(value))
 
+    def _selected_conceptual_series(self):
+        index = self.conceptual_series_combo.currentIndex()
+
+        return unicode(self.conceptual_series_combo.itemData(index).toPyObject()) if index != -1 else None
+
+    def _set_conceptual_series(self, value):
+        for index in xrange(self.conceptual_series_combo.count()):
+            if unicode(self.conceptual_series_combo.itemData(index).toPyObject()) == value:
+                self.conceptual_series_combo.setCurrentIndex(index)
+                return
+
+        self.conceptual_series_combo.setCurrentIndex(0)
+
+    def _on_lexicon_changed(self):
+        prev_selected = self._selected_conceptual_series()
+
+        concepts = sorted(set([entry.conceptual_content for entry in self.lexicon_table.get_lexicon()
+                               if entry.conceptual_content is not None]))
+
+        self.conceptual_series_combo.clear()
+        for i, item in enumerate(concepts):
+            self.conceptual_series_combo.addItem(item, item)
+
+        if len(concepts) == 0:
+            self.conceptual_series_combo.addItem('--', None)
+
+        self._set_conceptual_series(prev_selected)
+
     def _on_alternative_selected_in_combo(self, index):
         if index <= 0:
             return
@@ -181,10 +212,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
                 item.setChecked(active)
 
     def _on_clicked_full_run(self):
-        self._do_algorithm_action(lambda: self._app.do_full_run(self.only_successful_checkbox.isChecked()))
+        only_successful = self.only_successful_checkbox.isChecked()
+        success = self._do_algorithm_action(lambda: self._app.do_full_run(only_successful))
+        if only_successful and not success:
+            self._show_error_messagebox("Lexicalization not successful")
 
     def _on_clicked_next_possibility(self):
-        if not self._do_algorithm_action(lambda: self._app.next_possibility(self.only_successful_checkbox.isChecked())):
+        only_successful = self.only_successful_checkbox.isChecked()
+        if not self._do_algorithm_action(lambda: self._app.next_possibility(only_successful)):
             self._show_info_messagebox("There are no more possibilities")
 
     def _on_clicked_restart(self):

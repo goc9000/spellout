@@ -348,11 +348,16 @@ class SpelloutAlgorithm():
 
         return matches
 
+    def _accessible_lexicon(self):
+        for item in self._setup.lexicon:
+            if item.conceptual_content is None or item.conceptual_content == self._setup.conceptual_series:
+                yield item
+
     def _matches_without_movement(self, node):
         matches = []
 
         node_sig = node.signature()
-        for item in self._setup.lexicon:
+        for item in self._accessible_lexicon():
             item_tree_size = item.tree.root.subtree_size()
 
             for start_node in item.tree.bfs():
