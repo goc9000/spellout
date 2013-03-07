@@ -36,6 +36,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
 
         self.advanced_box.setVisible(self.advanced_button.isChecked())
         self.lexicon_table.changed.connect(self._on_lexicon_changed)
+        self.lexicon_table.selectionModel().currentChanged.connect(self._update_lexicon_buttons)
 
         self._update_all_from_session()
 
@@ -152,6 +153,16 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
             self.conceptual_series_combo.addItem('--', None)
 
         self._set_conceptual_series(prev_selected)
+        self._update_lexicon_buttons()
+
+    def _update_lexicon_buttons(self):
+        valid_commands = self.lexicon_table.valid_commands()
+
+        self.lexicon_delete_button.setEnabled(valid_commands['delete'])
+        self.lexicon_delete_button.setVisible(not valid_commands['clear'])
+        self.lexicon_clear_button.setVisible(valid_commands['clear'])
+        self.lexicon_move_up_button.setEnabled(valid_commands['move_up'])
+        self.lexicon_move_down_button.setEnabled(valid_commands['move_down'])
 
     def _on_alternative_selected_in_combo(self, index):
         if index <= 0:

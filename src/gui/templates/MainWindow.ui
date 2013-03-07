@@ -124,8 +124,8 @@
         <property name="title">
          <string>Lexicon</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
           <widget class="LexiconTable" name="lexicon_table">
            <property name="minimumSize">
             <size>
@@ -140,6 +140,90 @@
             </size>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="lexicon_buttons">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QToolButton" name="lexicon_delete_button">
+             <property name="text">
+              <string>Delete</string>
+             </property>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextBesideIcon</enum>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
+             <property name="arrowType">
+              <enum>Qt::NoArrow</enum>
+             </property>
+             <property name="standardIcon" stdset="0">
+              <string notr="true">SP_DialogDiscardButton</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="lexicon_clear_button">
+             <property name="text">
+              <string>Clear</string>
+             </property>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextBesideIcon</enum>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
+             <property name="standardIcon" stdset="0">
+              <string notr="true">SP_DialogResetButton</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="lexicon_move_up_button">
+             <property name="text">
+              <string>Move Up</string>
+             </property>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextBesideIcon</enum>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
+             <property name="standardIcon" stdset="0">
+              <string notr="true">SP_ArrowUp</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="lexicon_move_down_button">
+             <property name="text">
+              <string>Move Down</string>
+             </property>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextBesideIcon</enum>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
+             <property name="standardIcon" stdset="0">
+              <string notr="true">SP_ArrowDown</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -533,6 +617,12 @@
    <class>LexiconTable</class>
    <extends>QTableView</extends>
    <header>gui.widgets.LexiconTable</header>
+   <slots>
+    <slot>clear_new_row()</slot>
+    <slot>delete_current_item()</slot>
+    <slot>move_current_item_up()</slot>
+    <slot>move_current_item_down()</slot>
+   </slots>
   </customwidget>
   <customwidget>
    <class>NodeInput</class>
@@ -861,6 +951,70 @@
     <hint type="destinationlabel">
      <x>522</x>
      <y>283</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lexicon_delete_button</sender>
+   <signal>clicked()</signal>
+   <receiver>lexicon_table</receiver>
+   <slot>delete_current_item()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>135</x>
+     <y>534</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>350</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lexicon_clear_button</sender>
+   <signal>clicked()</signal>
+   <receiver>lexicon_table</receiver>
+   <slot>clear_new_row()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>187</x>
+     <y>534</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>350</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lexicon_move_up_button</sender>
+   <signal>clicked()</signal>
+   <receiver>lexicon_table</receiver>
+   <slot>move_current_item_up()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>244</x>
+     <y>534</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>350</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lexicon_move_down_button</sender>
+   <signal>clicked()</signal>
+   <receiver>lexicon_table</receiver>
+   <slot>move_current_item_down()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>318</x>
+     <y>534</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>350</y>
     </hint>
    </hints>
   </connection>

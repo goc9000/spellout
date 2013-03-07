@@ -25,8 +25,6 @@ COLUMN_WIDTHS = [56, 56, 64]
 class LexiconTable(QTableView):
     changed = pyqtSignal()
 
-    _disable_change_signal = False
-
     def __init__(self, parent):
         QTableView.__init__(self, parent)
 
@@ -44,21 +42,46 @@ class LexiconTable(QTableView):
         self.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
 
         self.connect(model, SIGNAL("dataChanged(QModelIndex,QModelIndex)"), self._on_change)
+        self.connect(model, SIGNAL("modelReset()"), self._on_change)
         self.connect(model, SIGNAL("rowsInserted(QModelIndex,int,int)"), self._on_change)
-        self.connect(model, SIGNAL("rowsDeleted(QModelIndex,int,int)"), self._on_change)
+        self.connect(model, SIGNAL("rowsRemoved(QModelIndex,int,int)"), self._on_change)
+        self.connect(model, SIGNAL("rowsMoved(QModelIndex,int,int,QModelIndex,int)"), self._on_change)
+
+        self.setSelectionBehavior(self.SelectRows)
 
     def set_lexicon(self, lexicon):
-        self._disable_change_signal = True
         self.model().set_lexicon(lexicon)
-        self._disable_change_signal = False
-        self._on_change()
 
     def get_lexicon(self):
         return self.model().get_lexicon()
 
+    def valid_commands(self):
+        row = self.currentIndex().row()
+        count = self.model().rowCount(0)
+
+        commands = {
+            'delete': 0 <= row < count - 1,
+            'clear': row == count - 1,
+            'move_up': row > 0 and row != count - 1,
+            'move_down': 0 <= row < count - 2
+        }
+
+        return commands
+
+    def delete_current_item(self):
+        self.model().delete_item(self.currentIndex().row())
+
+    def clear_new_row(self):
+        self.model().clear_new_row()
+
+    def move_current_item_up(self):
+        self.model().move_item(self.currentIndex().row(), self.currentIndex().row() - 1)
+
+    def move_current_item_down(self):
+        self.model().move_item(self.currentIndex().row(), self.currentIndex().row() + 1)
+
     def _on_change(self):
-        if not self._disable_change_signal:
-            self.changed.emit()
+        self.changed.emit()
 
 
 class LexiconTableItemDelegate(QItemDelegate):
@@ -121,18 +144,41 @@ class LexiconTableModel(QAbstractTableModel):
         self._refresh_tree_pic_cache()
 
     def set_lexicon(self, lexicon):
-        self.beginRemoveRows(QModelIndex(), 0, len(self._lexicon))
-        self._lexicon = []
-        self._tree_pic_cache = []
-        self.endRemoveRows()
-        self.beginInsertRows(QModelIndex(), 0, len(lexicon))
+        self.beginResetModel()
         self._lexicon = [entry.clone() for entry in lexicon]
         self._new_entry = LexiconEntry(None, None, None, None)
         self._refresh_tree_pic_cache()
-        self.endInsertRows()
+        self.endResetModel()
 
     def get_lexicon(self):
         return [entry.clone() for entry in self._lexicon]
+
+    def clear_new_row(self):
+        self._new_entry = LexiconEntry(None, None, None, None)
+        self._refresh_tree_pic_cache()
+        self.dataChanged.emit(self.createIndex(self.rowCount(0) - 1, 0),
+                              self.createIndex(self.rowCount(0), self.columnCount(0)))
+
+    def delete_item(self, row):
+        self.beginRemoveRows(QModelIndex(), row, row)
+        self._lexicon.pop(row)
+        self._tree_pic_cache.pop(row)
+        self.endRemoveRows()
+
+    def move_item(self, from_row, to_row):
+        if to_row == from_row:
+            return
+
+        # Note: we can't use begin/endMoveRows due to a severe bug in PyQt
+        self.beginRemoveRows(QModelIndex(), from_row, from_row)
+        item = self._lexicon.pop(from_row)
+        image = self._tree_pic_cache.pop(from_row)
+        self.endRemoveRows()
+        self.beginInsertRows(QModelIndex(), to_row, to_row)
+        self._lexicon.insert(to_row, item)
+        self._tree_pic_cache.insert(to_row, image)
+        self.endInsertRows()
+        self._parent.setCurrentIndex(self.createIndex(to_row, 0))
 
     def rowCount(self, parent):
         return len(self._lexicon) + 1
@@ -187,7 +233,7 @@ class LexiconTableModel(QAbstractTableModel):
             entry.conceptual_content = unicode(value) if value != '' else None
         elif index.column() == COL_TREE:
             entry.tree = value
-            self._tree_pic_cache[index.row()] = TreeRenderer(value).get_tree_image()
+            self._refresh_tree_pic_cache(index.row())
         else:
             return False
 
@@ -206,9 +252,12 @@ class LexiconTableModel(QAbstractTableModel):
     def entry_at_row(self, row):
         return self._lexicon[row] if row < len(self._lexicon) else self._new_entry
 
-    def _refresh_tree_pic_cache(self):
-        self._tree_pic_cache = [TreeRenderer(entry.tree).get_tree_image() for entry in self._lexicon]
-        self._tree_pic_cache.append(TreeRenderer(self._new_entry.tree).get_tree_image())
+    def _refresh_tree_pic_cache(self, row=None):
+        if row is None:
+            self._tree_pic_cache = [TreeRenderer(self.entry_at_row(row).tree).get_tree_image()
+                                    for row in xrange(len(self._lexicon) + 1)]
+        else:
+            self._tree_pic_cache[row] = TreeRenderer(self.entry_at_row(row).tree).get_tree_image()
 
     def _commit_new_entry(self):
         if not self._new_entry.is_complete():
