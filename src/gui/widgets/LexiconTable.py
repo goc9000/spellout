@@ -139,14 +139,14 @@ class LexiconTableModel(QAbstractTableModel):
     def __init__(self, parent):
         QAbstractTableModel.__init__(self, parent)
         self._lexicon = []
-        self._new_entry = LexiconEntry(None, None, None, None)
+        self._new_entry = LexiconEntry()
         self._parent = parent
         self._refresh_tree_pic_cache()
 
     def set_lexicon(self, lexicon):
         self.beginResetModel()
         self._lexicon = [entry.clone() for entry in lexicon]
-        self._new_entry = LexiconEntry(None, None, None, None)
+        self._new_entry = LexiconEntry()
         self._refresh_tree_pic_cache()
         self.endResetModel()
 
@@ -154,7 +154,7 @@ class LexiconTableModel(QAbstractTableModel):
         return [entry.clone() for entry in self._lexicon]
 
     def clear_new_row(self):
-        self._new_entry = LexiconEntry(None, None, None, None)
+        self._new_entry = LexiconEntry()
         self._refresh_tree_pic_cache()
         self.dataChanged.emit(self.createIndex(self.rowCount(0) - 1, 0),
                               self.createIndex(self.rowCount(0), self.columnCount(0)))
@@ -205,7 +205,7 @@ class LexiconTableModel(QAbstractTableModel):
                 else:
                     return QVariant(entry.phonological_content)
             if index.column() == COL_CONCEPT:
-                return QVariant(entry.conceptual_content)
+                return QVariant(u', '.join(entry.conceptual_content))
             if index.column() == COL_TREE and role == Qt.EditRole:
                 return QVariant(entry.tree)
         elif role == Qt.TextAlignmentRole:
@@ -230,7 +230,8 @@ class LexiconTableModel(QAbstractTableModel):
         elif index.column() == COL_PHONO:
             entry.phonological_content = unicode(value) if value != '' else None
         elif index.column() == COL_CONCEPT:
-            entry.conceptual_content = unicode(value) if value != '' else None
+            entry.conceptual_content = [item.strip().upper()
+                                        for item in unicode(value).split(',') if item.strip() != '']
         elif index.column() == COL_TREE:
             entry.tree = value
             self._refresh_tree_pic_cache(index.row())
@@ -265,6 +266,6 @@ class LexiconTableModel(QAbstractTableModel):
 
         self.beginInsertRows(QModelIndex(), len(self._lexicon), len(self._lexicon))
         self._lexicon.append(self._new_entry)
-        self._new_entry = LexiconEntry(None, None, None, None)
+        self._new_entry = LexiconEntry()
         self._tree_pic_cache.append(TreeRenderer(None).get_tree_image())
         self.endInsertRows()

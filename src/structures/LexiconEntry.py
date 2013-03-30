@@ -1,7 +1,7 @@
 # structures/LexiconEntry.py
 #
 # (C) Copyright 2013  Cristian Dinu <goc9000@gmail.com>
-# 
+#
 # This file is part of spellout.
 #
 # Licensed under the GPL-3
@@ -14,11 +14,11 @@ class LexiconEntry:
     phonological_content = None
     conceptual_content = None
     tree = None
-    
-    def __init__(self, name, phonological_content, conceptual_content, tree):
+
+    def __init__(self, name=None, phonological_content=None, conceptual_content=None, tree=None):
         self.name = name
         self.phonological_content = phonological_content
-        self.conceptual_content = conceptual_content
+        self.conceptual_content = list(conceptual_content) if conceptual_content is not None else []
         self.tree = tree
 
     def clone(self):
@@ -27,11 +27,11 @@ class LexiconEntry:
 
     def is_complete(self):
         return self.name is not None and self.tree is not None
-    
+
     def to_json_obj(self):
         obj = {'name': self.name,
                'phonological_content': self.phonological_content,
-               'conceptual_content': self.conceptual_content,
+               'conceptual_content': list(self.conceptual_content),
                'tree': self.tree.to_json_obj()}
 
         return obj

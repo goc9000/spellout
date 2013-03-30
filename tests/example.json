@@ -50,7 +50,7 @@
                     }
                 },
                 "name": "x",
-                "conceptual_content": null
+                "conceptual_content": []
             },
             {
                 "phonological_content": "ze",
@@ -62,7 +62,7 @@
                     }
                 },
                 "name": "y",
-                "conceptual_content": null
+                "conceptual_content": []
             },
             {
                 "phonological_content": "zi",
@@ -85,7 +85,7 @@
                     }
                 },
                 "name": "z",
-                "conceptual_content": null
+                "conceptual_content": []
             },
             {
                 "phonological_content": "zo",
@@ -97,7 +97,7 @@
                     }
                 },
                 "name": "v",
-                "conceptual_content": null
+                "conceptual_content": []
             },
             {
                 "phonological_content": "zu",
@@ -126,7 +126,7 @@
                     }
                 },
                 "name": "w",
-                "conceptual_content": null
+                "conceptual_content": []
             }
         ],
         "conceptual_series": null

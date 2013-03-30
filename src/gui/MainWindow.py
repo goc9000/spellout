@@ -142,8 +142,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowUtils):
     def _on_lexicon_changed(self):
         prev_selected = self._selected_conceptual_series()
 
-        concepts = sorted(set([entry.conceptual_content for entry in self.lexicon_table.get_lexicon()
-                               if entry.conceptual_content is not None]))
+        concepts = sum([entry.conceptual_content for entry in self.lexicon_table.get_lexicon()], [])
+        concepts = sorted(set(concepts))
 
         self.conceptual_series_combo.clear()
         for i, item in enumerate(concepts):

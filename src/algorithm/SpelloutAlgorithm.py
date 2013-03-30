@@ -350,7 +350,7 @@ class SpelloutAlgorithm():
 
     def _accessible_lexicon(self):
         for item in self._setup.lexicon:
-            if item.conceptual_content is None or item.conceptual_content == self._setup.conceptual_series:
+            if len(item.conceptual_content) == 0 or self._setup.conceptual_series in item.conceptual_content:
                 yield item
 
     def _matches_without_movement(self, node):
