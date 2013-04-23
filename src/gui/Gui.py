@@ -26,5 +26,6 @@ class Gui():
 
     def run_blocking(self):
         self.main_window.show()
+        self.main_window.raise_()
         self._qapp.exec_()
         self._qapp.deleteLater()
