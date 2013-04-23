@@ -636,7 +636,7 @@
  <connections>
   <connection>
    <sender>exit_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
    <hints>
@@ -652,7 +652,7 @@
   </connection>
   <connection>
    <sender>open_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_open()</slot>
    <hints>
@@ -668,7 +668,7 @@
   </connection>
   <connection>
    <sender>save_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_save()</slot>
    <hints>
@@ -684,7 +684,7 @@
   </connection>
   <connection>
    <sender>save_as_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_save_as()</slot>
    <hints>
@@ -732,7 +732,7 @@
   </connection>
   <connection>
    <sender>full_run_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_full_run()</slot>
    <hints>
@@ -764,7 +764,7 @@
   </connection>
   <connection>
    <sender>next_possibility_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_next_possibility()</slot>
    <hints>
@@ -796,7 +796,7 @@
   </connection>
   <connection>
    <sender>restart_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_restart()</slot>
    <hints>
@@ -828,7 +828,7 @@
   </connection>
   <connection>
    <sender>back_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_back()</slot>
    <hints>
@@ -860,7 +860,7 @@
   </connection>
   <connection>
    <sender>forward_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_forward()</slot>
    <hints>
@@ -892,7 +892,7 @@
   </connection>
   <connection>
    <sender>go_to_end_action</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>_on_clicked_go_to_end()</slot>
    <hints>
