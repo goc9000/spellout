@@ -34,9 +34,6 @@ class Setup:
         if self.initial_node is None:
             raise RuntimeError("You must provide an initial node for the algorithm to start")
 
-        if not isinstance(self.initial_node, FeatureNode):
-            raise RuntimeError("Initial node must be a feature node")
-
         if len(self.external_merges) == 0:
             raise RuntimeError("You must specify at least one node to externally merge")
 
