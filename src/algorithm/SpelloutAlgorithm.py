@@ -9,6 +9,7 @@
 import copy
 
 from algorithm.Setup import Setup
+from structures import LexiconEntry
 from structures.tree.Tree import Tree
 from structures.tree.TreeNode import TreeNode
 from structures.tree.PhrasalNode import PhrasalNode
@@ -43,6 +44,7 @@ class SpelloutAlgorithm():
 
     _tree_clone = None
     _node_clones = None
+    _special_init_node_lexicon_entry = None
 
     def __init__(self):
         self._state = self._state_not_started
@@ -91,6 +93,7 @@ class SpelloutAlgorithm():
     def start(self, setup):
         setup.check()
         self._setup = setup.clone()
+        self._regen_special_init_node_lexicon_entry()
 
         self._switch_state(self._state_just_started, {})
 
@@ -208,6 +211,9 @@ class SpelloutAlgorithm():
         self._pending_moves = {}
         self._log_note("Algorithm started.")
         self._log_note("Initial tree consists of node {0}".format(self._setup.initial_node.name()))
+        if isinstance(self._setup.initial_node, PhrasalNode):
+            self._lexicalizations[self._setup.initial_node] = self._special_init_node_lexicon_entry
+            self._log_note("Initial node is already lexicalized")
         self._undo_info = []
         self._last_choice = None
 
@@ -311,13 +317,14 @@ class SpelloutAlgorithm():
         return self._first_nonlexicalized_node() is not None
 
     def _first_nonlexicalized_node(self):
-        for node in reversed(list(self._tree.bfs())):
-            if not (isinstance(node, TraceNode) or self._node_is_lexicalized(node)):
-                # Special: the root does not need to be lexicalized in the final cycle
-                if node == self._tree.root and self._is_final_round():
-                    return None
+        for index, node in enumerate(reversed(list(self._tree.bfs()))):
+            if self._node_is_lexicalized(node) or isinstance(node, TraceNode):
+                continue
+            # Special: the root does not need to be lexicalized in the final cycle
+            if node == self._tree.root and self._is_final_round():
+                continue
 
-                return node
+            return node
 
         return None
 
@@ -550,10 +557,23 @@ class SpelloutAlgorithm():
             self._tree_clone = None
             self._node_clones = {}
 
+    def _regen_special_init_node_lexicon_entry(self):
+        if self._setup.initial_node is None:
+            self._special_init_node_lexicon_entry = None
+            return
+
+        self._special_init_node_lexicon_entry = LexiconEntry(
+            self._setup.initial_node.name(),
+            self._setup.initial_node.name(),
+            None,
+            Tree(self._setup.initial_node)
+        )
+
     def _load_from_json_obj(self, data):
         REF = self._references_from_json
 
         self._setup = Setup.from_json_obj(data['setup'])
+        self._regen_special_init_node_lexicon_entry()
 
         self._tree = Tree.from_json_obj(data['tree'])
         self._log = copy.deepcopy(data['log'])
@@ -589,6 +609,9 @@ class SpelloutAlgorithm():
 
             raise RuntimeError("Tried to refer to node not in tree")
         elif isinstance(value, LexiconEntry):
+            if value == self._special_init_node_lexicon_entry:
+                return '@lexicon:INIT'
+
             return '@lexicon:{0}'.format(self._setup.lexicon.index(value))
         elif callable(value):
             if value.__name__.startswith('_state_'):
@@ -622,6 +645,9 @@ class SpelloutAlgorithm():
 
                 return all_nodes[index - 1]
             elif data.startswith('@lexicon:'):
+                if data == '@lexicon:INIT':
+                    return self._special_init_node_lexicon_entry
+
                 index = int(data[len('@lexicon:'):])
                 if index < 0 or index >= len(self._setup.lexicon):
                     raise RuntimeError("Invalid lexicon item index: {0}".format(index))
